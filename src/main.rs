@@ -24,6 +24,7 @@ struct NotepadApp {
     show_unsaved_dialog: bool,
     pending_action: Option<PendingAction>,
     status_message: Option<String>,
+    font_size: f32,
 }
 
 #[derive(Clone)]
@@ -45,6 +46,7 @@ impl NotepadApp {
             show_unsaved_dialog: false,
             pending_action: None,
             status_message: None,
+            font_size: 14.0,
         }
     }
 
@@ -107,6 +109,29 @@ impl NotepadApp {
 
         // Dark mode
         style.visuals.dark_mode = true;
+
+        // Set fixed font size of 16 for all UI elements
+        let ui_font_size = 16.0;
+        style.text_styles.insert(
+            egui::TextStyle::Body,
+            egui::FontId::new(ui_font_size, egui::FontFamily::Proportional),
+        );
+        style.text_styles.insert(
+            egui::TextStyle::Button,
+            egui::FontId::new(ui_font_size, egui::FontFamily::Proportional),
+        );
+        style.text_styles.insert(
+            egui::TextStyle::Heading,
+            egui::FontId::new(ui_font_size * 1.2, egui::FontFamily::Proportional),
+        );
+        style.text_styles.insert(
+            egui::TextStyle::Small,
+            egui::FontId::new(ui_font_size * 0.85, egui::FontFamily::Proportional),
+        );
+        style.text_styles.insert(
+            egui::TextStyle::Monospace,
+            egui::FontId::new(ui_font_size, egui::FontFamily::Monospace),
+        );
 
         ctx.set_style(style);
     }
@@ -359,6 +384,40 @@ impl eframe::App for NotepadApp {
                         ui.close_menu();
                     }
                 });
+
+                ui.menu_button("Settings", |ui| {
+                    ui.label("Editor Font Size");
+                    ui.horizontal(|ui| {
+                        if ui.button("-").clicked() {
+                            self.font_size = (self.font_size - 1.0).max(8.0);
+                        }
+                        ui.label(format!("{:.0}", self.font_size));
+                        if ui.button("+").clicked() {
+                            self.font_size = (self.font_size + 1.0).min(48.0);
+                        }
+                    });
+
+                    ui.separator();
+
+                    ui.menu_button("Presets", |ui| {
+                        if ui.button("Small (12)").clicked() {
+                            self.font_size = 12.0;
+                            ui.close_menu();
+                        }
+                        if ui.button("Medium (14)").clicked() {
+                            self.font_size = 14.0;
+                            ui.close_menu();
+                        }
+                        if ui.button("Large (18)").clicked() {
+                            self.font_size = 18.0;
+                            ui.close_menu();
+                        }
+                        if ui.button("Extra Large (24)").clicked() {
+                            self.font_size = 24.0;
+                            ui.close_menu();
+                        }
+                    });
+                });
             });
         });
 
@@ -381,10 +440,11 @@ impl eframe::App for NotepadApp {
             egui::ScrollArea::vertical()
                 .auto_shrink([false, false])
                 .show(ui, |ui| {
+                    let editor_font = egui::FontId::new(self.font_size, egui::FontFamily::Monospace);
                     let response = ui.add_sized(
                         ui.available_size(),
                         egui::TextEdit::multiline(&mut self.text)
-                            .font(egui::TextStyle::Monospace)
+                            .font(editor_font)
                             .desired_width(f32::INFINITY),
                     );
 
