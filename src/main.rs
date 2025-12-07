@@ -29,6 +29,7 @@ struct NotepadApp {
     pending_action: Option<PendingAction>,
     status_message: Option<String>,
     font_size: f32,
+    dark_mode: bool,
 }
 
 #[derive(Clone)]
@@ -51,7 +52,102 @@ impl NotepadApp {
             pending_action: None,
             status_message: None,
             font_size: 14.0,
+            dark_mode: true,
         }
+    }
+
+    fn apply_theme(&self, ctx: &egui::Context) {
+        if self.dark_mode {
+            Self::apply_catppuccin_mocha(ctx);
+        } else {
+            Self::apply_catppuccin_latte(ctx);
+        }
+    }
+
+    fn apply_catppuccin_latte(ctx: &egui::Context) {
+        // Catppuccin Latte colors (light theme)
+        let base = egui::Color32::from_rgb(239, 241, 245);
+        let mantle = egui::Color32::from_rgb(230, 233, 239);
+        let crust = egui::Color32::from_rgb(220, 224, 232);
+        let text = egui::Color32::from_rgb(76, 79, 105);
+        let subtext0 = egui::Color32::from_rgb(108, 111, 133);
+        let surface0 = egui::Color32::from_rgb(204, 208, 218);
+        let surface1 = egui::Color32::from_rgb(188, 192, 204);
+        let surface2 = egui::Color32::from_rgb(172, 176, 190);
+        let overlay0 = egui::Color32::from_rgb(156, 160, 176);
+        let blue = egui::Color32::from_rgb(30, 102, 245);
+        let lavender = egui::Color32::from_rgb(114, 135, 253);
+        let sapphire = egui::Color32::from_rgb(32, 159, 181);
+
+        let mut style = (*ctx.style()).clone();
+
+        // Window
+        style.visuals.window_fill = base;
+        style.visuals.panel_fill = base;
+        style.visuals.faint_bg_color = mantle;
+        style.visuals.extreme_bg_color = crust;
+
+        // Text
+        style.visuals.override_text_color = Some(text);
+
+        // Widgets
+        style.visuals.widgets.noninteractive.bg_fill = surface0;
+        style.visuals.widgets.noninteractive.fg_stroke = egui::Stroke::new(1.0, subtext0);
+        style.visuals.widgets.noninteractive.bg_stroke = egui::Stroke::new(1.0, surface1);
+
+        style.visuals.widgets.inactive.bg_fill = surface0;
+        style.visuals.widgets.inactive.fg_stroke = egui::Stroke::new(1.0, text);
+        style.visuals.widgets.inactive.bg_stroke = egui::Stroke::new(1.0, surface1);
+
+        style.visuals.widgets.hovered.bg_fill = surface1;
+        style.visuals.widgets.hovered.fg_stroke = egui::Stroke::new(1.5, text);
+        style.visuals.widgets.hovered.bg_stroke = egui::Stroke::new(1.0, lavender);
+
+        style.visuals.widgets.active.bg_fill = surface2;
+        style.visuals.widgets.active.fg_stroke = egui::Stroke::new(2.0, text);
+        style.visuals.widgets.active.bg_stroke = egui::Stroke::new(1.0, blue);
+
+        style.visuals.widgets.open.bg_fill = surface1;
+        style.visuals.widgets.open.fg_stroke = egui::Stroke::new(1.0, text);
+        style.visuals.widgets.open.bg_stroke = egui::Stroke::new(1.0, surface2);
+
+        // Selection
+        style.visuals.selection.bg_fill = blue.gamma_multiply(0.3);
+        style.visuals.selection.stroke = egui::Stroke::new(1.0, lavender);
+
+        // Hyperlinks
+        style.visuals.hyperlink_color = sapphire;
+
+        // Window stroke
+        style.visuals.window_stroke = egui::Stroke::new(1.0, overlay0);
+
+        // Light mode
+        style.visuals.dark_mode = false;
+
+        // Set fixed font size of 16 for all UI elements
+        let ui_font_size = 16.0;
+        style.text_styles.insert(
+            egui::TextStyle::Body,
+            egui::FontId::new(ui_font_size, egui::FontFamily::Proportional),
+        );
+        style.text_styles.insert(
+            egui::TextStyle::Button,
+            egui::FontId::new(ui_font_size, egui::FontFamily::Proportional),
+        );
+        style.text_styles.insert(
+            egui::TextStyle::Heading,
+            egui::FontId::new(ui_font_size * 1.2, egui::FontFamily::Proportional),
+        );
+        style.text_styles.insert(
+            egui::TextStyle::Small,
+            egui::FontId::new(ui_font_size * 0.85, egui::FontFamily::Proportional),
+        );
+        style.text_styles.insert(
+            egui::TextStyle::Monospace,
+            egui::FontId::new(ui_font_size, egui::FontFamily::Monospace),
+        );
+
+        ctx.set_style(style);
     }
 
     fn apply_catppuccin_mocha(ctx: &egui::Context) {
@@ -335,10 +431,19 @@ impl eframe::App for NotepadApp {
         // Handle unsaved changes dialog
         self.handle_unsaved_dialog(ctx);
 
-        // Custom title bar with Catppuccin Mocha colors
+        // Custom title bar with theme-aware colors
         let title_bar_height = 32.0;
-        let mantle = egui::Color32::from_rgb(24, 24, 37);
-        let text_color = egui::Color32::from_rgb(205, 214, 244);
+        let (mantle, text_color) = if self.dark_mode {
+            (
+                egui::Color32::from_rgb(24, 24, 37),    // Mocha mantle
+                egui::Color32::from_rgb(205, 214, 244), // Mocha text
+            )
+        } else {
+            (
+                egui::Color32::from_rgb(230, 233, 239), // Latte mantle
+                egui::Color32::from_rgb(76, 79, 105),   // Latte text
+            )
+        };
 
         egui::TopBottomPanel::top("title_bar")
             .exact_height(title_bar_height)
@@ -435,17 +540,34 @@ impl eframe::App for NotepadApp {
 
         // Status bar
         egui::TopBottomPanel::bottom("status_bar").show(ctx, |ui| {
-                ui.horizontal(|ui| {
-                    if let Some(ref msg) = self.status_message {
-                        ui.label(msg);
-                    }
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        let lines = self.text.lines().count().max(1);
-                        let chars = self.text.len();
-                        ui.label(format!("Lines: {} | Chars: {}", lines, chars));
-                    });
+            ui.horizontal(|ui| {
+                // Theme toggle on the left (sun for light, moon for dark)
+                // Show moon in dark mode (click to go light), sun in light mode (click to go dark)
+                let (theme_icon, icon_color) = if self.dark_mode {
+                    ("\u{1F319}", egui::Color32::from_rgb(249, 226, 175)) // 🌙 crescent moon, yellow/gold
+                } else {
+                    ("\u{2600}", egui::Color32::from_rgb(223, 142, 29))   // ☀ sun, orange
+                };
+
+                let button = egui::Button::new(egui::RichText::new(theme_icon).color(icon_color).size(18.0))
+                    .frame(false);
+                if ui.add(button).clicked() {
+                    self.dark_mode = !self.dark_mode;
+                    self.apply_theme(ctx);
+                }
+
+                if let Some(ref msg) = self.status_message {
+                    ui.add_space(10.0);
+                    ui.label(msg);
+                }
+
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    let lines = self.text.lines().count().max(1);
+                    let chars = self.text.len();
+                    ui.label(format!("Lines: {} | Chars: {}", lines, chars));
                 });
             });
+        });
 
         // Main text editor
         egui::CentralPanel::default().show(ctx, |ui| {
