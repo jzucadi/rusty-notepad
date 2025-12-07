@@ -7,7 +7,10 @@ fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([800.0, 600.0])
-            .with_min_inner_size([400.0, 300.0]),
+            .with_min_inner_size([400.0, 300.0])
+            .with_fullsize_content_view(true)
+            .with_titlebar_shown(false)
+            .with_title_shown(false),
         ..Default::default()
     };
 
@@ -326,14 +329,36 @@ impl eframe::App for NotepadApp {
             }
         }
 
-        // Update window title
-        ctx.send_viewport_cmd(egui::ViewportCommand::Title(self.window_title()));
-
         // Handle keyboard shortcuts
         self.handle_keyboard_shortcuts(ctx);
 
         // Handle unsaved changes dialog
         self.handle_unsaved_dialog(ctx);
+
+        // Custom title bar with Catppuccin Mocha colors
+        let title_bar_height = 32.0;
+        let mantle = egui::Color32::from_rgb(24, 24, 37);
+        let text_color = egui::Color32::from_rgb(205, 214, 244);
+
+        egui::TopBottomPanel::top("title_bar")
+            .exact_height(title_bar_height)
+            .frame(egui::Frame::none().fill(mantle))
+            .show(ctx, |ui| {
+                ui.horizontal_centered(|ui| {
+                    // Leave space for native macOS traffic light buttons
+                    ui.add_space(80.0);
+
+                    // Center the date/time in the title bar
+                    let time_text = self.window_title();
+                    let available = ui.available_width();
+                    let text_width = ui.fonts(|f| {
+                        f.glyph_width(&egui::FontId::default(), ' ') * time_text.len() as f32
+                    });
+                    ui.add_space((available - text_width) / 2.0 - 40.0);
+
+                    ui.label(egui::RichText::new(time_text).color(text_color).size(14.0));
+                });
+            });
 
         // Menu bar
         egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
@@ -419,17 +444,17 @@ impl eframe::App for NotepadApp {
 
         // Status bar
         egui::TopBottomPanel::bottom("status_bar").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                if let Some(ref msg) = self.status_message {
-                    ui.label(msg);
-                }
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    let lines = self.text.lines().count().max(1);
-                    let chars = self.text.len();
-                    ui.label(format!("Lines: {} | Chars: {}", lines, chars));
+                ui.horizontal(|ui| {
+                    if let Some(ref msg) = self.status_message {
+                        ui.label(msg);
+                    }
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        let lines = self.text.lines().count().max(1);
+                        let chars = self.text.len();
+                        ui.label(format!("Lines: {} | Chars: {}", lines, chars));
+                    });
                 });
             });
-        });
 
         // Main text editor
         egui::CentralPanel::default().show(ctx, |ui| {
