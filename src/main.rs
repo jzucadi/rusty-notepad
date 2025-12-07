@@ -1,3 +1,4 @@
+use chrono::Local;
 use eframe::egui;
 use std::fs;
 use std::path::PathBuf;
@@ -137,15 +138,7 @@ impl NotepadApp {
     }
 
     fn window_title(&self) -> String {
-        let filename = self
-            .file_path
-            .as_ref()
-            .and_then(|p| p.file_name())
-            .and_then(|n| n.to_str())
-            .unwrap_or("Untitled");
-
-        let dirty_marker = if self.dirty { "*" } else { "" };
-        format!("{}{} - Rusty Notepad", dirty_marker, filename)
+        Local::now().format("%A, %B %d, %Y  %I:%M:%S %p").to_string()
     }
 
     fn new_file(&mut self) {
@@ -319,6 +312,9 @@ impl NotepadApp {
 
 impl eframe::App for NotepadApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // Request repaint every second to update the time in the title bar
+        ctx.request_repaint_after(std::time::Duration::from_secs(1));
+
         // Handle close request - check if window close was requested
         if ctx.input(|i| i.viewport().close_requested()) {
             if self.dirty && !self.show_unsaved_dialog {
