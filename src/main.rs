@@ -344,18 +344,9 @@ impl eframe::App for NotepadApp {
             .exact_height(title_bar_height)
             .frame(egui::Frame::none().fill(mantle))
             .show(ctx, |ui| {
-                ui.horizontal_centered(|ui| {
-                    // Leave space for native macOS traffic light buttons
-                    ui.add_space(80.0);
-
-                    // Center the date/time in the title bar
-                    let time_text = self.window_title();
-                    let available = ui.available_width();
-                    let text_width = ui.fonts(|f| {
-                        f.glyph_width(&egui::FontId::default(), ' ') * time_text.len() as f32
-                    });
-                    ui.add_space((available - text_width) / 2.0 - 40.0);
-
+                let time_text = self.window_title();
+                ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
+                    ui.add_space(8.0);
                     ui.label(egui::RichText::new(time_text).color(text_color).size(14.0));
                 });
             });
