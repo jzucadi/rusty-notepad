@@ -1,7 +1,11 @@
 use chrono::Local;
 use eframe::egui;
+use serde::Deserialize;
 use std::fs;
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::{Duration, Instant};
 
 fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
@@ -21,6 +25,13 @@ fn main() -> eframe::Result<()> {
     )
 }
 
+// IP Geolocation response
+#[derive(Debug, Deserialize)]
+struct GeoResponse {
+    lat: f64,
+    lon: f64,
+}
+
 struct NotepadApp {
     text: String,
     file_path: Option<PathBuf>,
@@ -30,6 +41,15 @@ struct NotepadApp {
     status_message: Option<String>,
     font_size: f32,
     dark_mode: bool,
+    weather: Arc<Mutex<Option<WeatherInfo>>>,
+    last_weather_fetch: Option<Instant>,
+}
+
+#[derive(Clone)]
+struct WeatherInfo {
+    temperature_f: f64,
+    description: String,
+    icon: String,
 }
 
 #[derive(Clone)]
@@ -44,6 +64,18 @@ impl NotepadApp {
         // Apply Catppuccin Mocha theme manually
         Self::apply_catppuccin_mocha(&cc.egui_ctx);
 
+        let weather = Arc::new(Mutex::new(None));
+
+        // Fetch weather in background on startup
+        let weather_clone = Arc::clone(&weather);
+        thread::spawn(move || {
+            if let Some(info) = Self::fetch_weather() {
+                if let Ok(mut w) = weather_clone.lock() {
+                    *w = Some(info);
+                }
+            }
+        });
+
         Self {
             text: String::new(),
             file_path: None,
@@ -53,6 +85,73 @@ impl NotepadApp {
             status_message: None,
             font_size: 14.0,
             dark_mode: true,
+            weather,
+            last_weather_fetch: Some(Instant::now()),
+        }
+    }
+
+    fn fetch_weather() -> Option<WeatherInfo> {
+        // Use ip-api.com to get location (no API key needed)
+        let geo_url = "http://ip-api.com/json/";
+        let client = reqwest::blocking::Client::builder()
+            .timeout(Duration::from_secs(10))
+            .build()
+            .ok()?;
+
+        let geo_resp: GeoResponse = client.get(geo_url).send().ok()?.json().ok()?;
+
+        // Use Open-Meteo API (free, no API key needed)
+        let weather_url = format!(
+            "https://api.open-meteo.com/v1/forecast?latitude={}&longitude={}&current_weather=true&temperature_unit=fahrenheit",
+            geo_resp.lat, geo_resp.lon
+        );
+
+        let resp = client.get(&weather_url).send().ok()?;
+        let json: serde_json::Value = resp.json().ok()?;
+
+        let current = json.get("current_weather")?;
+        let temp = current.get("temperature")?.as_f64()?;
+        let weather_code = current.get("weathercode")?.as_i64().unwrap_or(0);
+
+        // Convert weather code to description and icon
+        let (description, icon) = match weather_code {
+            0 => ("Clear", "\u{2600}"),              // ☀ sun
+            1 | 2 | 3 => ("Partly cloudy", "\u{26C5}"), // ⛅ sun behind cloud
+            45 | 48 => ("Foggy", "\u{1F32B}"),       // 🌫 fog
+            51 | 53 | 55 => ("Drizzle", "\u{1F327}"), // 🌧 cloud with rain
+            61 | 63 | 65 => ("Rain", "\u{1F327}"),   // 🌧 cloud with rain
+            71 | 73 | 75 => ("Snow", "\u{2744}"),    // ❄ snowflake
+            77 => ("Snow grains", "\u{2744}"),       // ❄ snowflake
+            80 | 81 | 82 => ("Showers", "\u{1F327}"), // 🌧 cloud with rain
+            85 | 86 => ("Snow showers", "\u{1F328}"), // 🌨 cloud with snow
+            95 => ("Thunderstorm", "\u{26C8}"),      // ⛈ thunder cloud and rain
+            96 | 99 => ("Thunderstorm", "\u{26C8}"), // ⛈ thunder cloud and rain
+            _ => ("Unknown", "\u{2601}"),            // ☁ cloud
+        };
+
+        Some(WeatherInfo {
+            temperature_f: temp,
+            description: description.to_string(),
+            icon: icon.to_string(),
+        })
+    }
+
+    fn refresh_weather_if_needed(&mut self) {
+        // Refresh weather every 10 minutes
+        let should_refresh = self.last_weather_fetch
+            .map(|t| t.elapsed() > Duration::from_secs(600))
+            .unwrap_or(true);
+
+        if should_refresh {
+            self.last_weather_fetch = Some(Instant::now());
+            let weather_clone = Arc::clone(&self.weather);
+            thread::spawn(move || {
+                if let Some(info) = Self::fetch_weather() {
+                    if let Ok(mut w) = weather_clone.lock() {
+                        *w = Some(info);
+                    }
+                }
+            });
         }
     }
 
@@ -90,36 +189,36 @@ impl NotepadApp {
         // Text
         style.visuals.override_text_color = Some(text);
 
-        // Widgets
+        // Widgets - use base for borders/strokes
         style.visuals.widgets.noninteractive.bg_fill = surface0;
         style.visuals.widgets.noninteractive.fg_stroke = egui::Stroke::new(1.0, subtext0);
-        style.visuals.widgets.noninteractive.bg_stroke = egui::Stroke::new(1.0, surface1);
+        style.visuals.widgets.noninteractive.bg_stroke = egui::Stroke::new(1.0, base);
 
         style.visuals.widgets.inactive.bg_fill = surface0;
         style.visuals.widgets.inactive.fg_stroke = egui::Stroke::new(1.0, text);
-        style.visuals.widgets.inactive.bg_stroke = egui::Stroke::new(1.0, surface1);
+        style.visuals.widgets.inactive.bg_stroke = egui::Stroke::new(1.0, base);
 
         style.visuals.widgets.hovered.bg_fill = surface1;
         style.visuals.widgets.hovered.fg_stroke = egui::Stroke::new(1.5, text);
-        style.visuals.widgets.hovered.bg_stroke = egui::Stroke::new(1.0, lavender);
+        style.visuals.widgets.hovered.bg_stroke = egui::Stroke::new(1.0, base);
 
         style.visuals.widgets.active.bg_fill = surface2;
         style.visuals.widgets.active.fg_stroke = egui::Stroke::new(2.0, text);
-        style.visuals.widgets.active.bg_stroke = egui::Stroke::new(1.0, blue);
+        style.visuals.widgets.active.bg_stroke = egui::Stroke::new(1.0, base);
 
         style.visuals.widgets.open.bg_fill = surface1;
         style.visuals.widgets.open.fg_stroke = egui::Stroke::new(1.0, text);
-        style.visuals.widgets.open.bg_stroke = egui::Stroke::new(1.0, surface2);
+        style.visuals.widgets.open.bg_stroke = egui::Stroke::new(1.0, base);
 
         // Selection
         style.visuals.selection.bg_fill = blue.gamma_multiply(0.3);
-        style.visuals.selection.stroke = egui::Stroke::new(1.0, lavender);
+        style.visuals.selection.stroke = egui::Stroke::new(1.0, base);
 
         // Hyperlinks
         style.visuals.hyperlink_color = sapphire;
 
-        // Window stroke
-        style.visuals.window_stroke = egui::Stroke::new(1.0, overlay0);
+        // Window stroke - use base
+        style.visuals.window_stroke = egui::Stroke::new(1.0, base);
 
         // Light mode
         style.visuals.dark_mode = false;
@@ -176,36 +275,36 @@ impl NotepadApp {
         // Text
         style.visuals.override_text_color = Some(text);
 
-        // Widgets
+        // Widgets - use base for borders/strokes
         style.visuals.widgets.noninteractive.bg_fill = surface0;
         style.visuals.widgets.noninteractive.fg_stroke = egui::Stroke::new(1.0, subtext0);
-        style.visuals.widgets.noninteractive.bg_stroke = egui::Stroke::new(1.0, surface1);
+        style.visuals.widgets.noninteractive.bg_stroke = egui::Stroke::new(1.0, base);
 
         style.visuals.widgets.inactive.bg_fill = surface0;
         style.visuals.widgets.inactive.fg_stroke = egui::Stroke::new(1.0, text);
-        style.visuals.widgets.inactive.bg_stroke = egui::Stroke::new(1.0, surface1);
+        style.visuals.widgets.inactive.bg_stroke = egui::Stroke::new(1.0, base);
 
         style.visuals.widgets.hovered.bg_fill = surface1;
         style.visuals.widgets.hovered.fg_stroke = egui::Stroke::new(1.5, text);
-        style.visuals.widgets.hovered.bg_stroke = egui::Stroke::new(1.0, lavender);
+        style.visuals.widgets.hovered.bg_stroke = egui::Stroke::new(1.0, base);
 
         style.visuals.widgets.active.bg_fill = surface2;
         style.visuals.widgets.active.fg_stroke = egui::Stroke::new(2.0, text);
-        style.visuals.widgets.active.bg_stroke = egui::Stroke::new(1.0, blue);
+        style.visuals.widgets.active.bg_stroke = egui::Stroke::new(1.0, base);
 
         style.visuals.widgets.open.bg_fill = surface1;
         style.visuals.widgets.open.fg_stroke = egui::Stroke::new(1.0, text);
-        style.visuals.widgets.open.bg_stroke = egui::Stroke::new(1.0, surface2);
+        style.visuals.widgets.open.bg_stroke = egui::Stroke::new(1.0, base);
 
         // Selection
         style.visuals.selection.bg_fill = blue.gamma_multiply(0.4);
-        style.visuals.selection.stroke = egui::Stroke::new(1.0, lavender);
+        style.visuals.selection.stroke = egui::Stroke::new(1.0, base);
 
         // Hyperlinks
         style.visuals.hyperlink_color = sapphire;
 
-        // Window stroke
-        style.visuals.window_stroke = egui::Stroke::new(1.0, overlay0);
+        // Window stroke - use base
+        style.visuals.window_stroke = egui::Stroke::new(1.0, base);
 
         // Dark mode
         style.visuals.dark_mode = true;
@@ -414,6 +513,9 @@ impl eframe::App for NotepadApp {
         // Request repaint every second to update the time in the title bar
         ctx.request_repaint_after(std::time::Duration::from_secs(1));
 
+        // Refresh weather if needed (every 10 minutes)
+        self.refresh_weather_if_needed();
+
         // Handle close request - check if window close was requested
         if ctx.input(|i| i.viewport().close_requested()) {
             if self.dirty && !self.show_unsaved_dialog {
@@ -433,33 +535,55 @@ impl eframe::App for NotepadApp {
 
         // Custom title bar with theme-aware colors
         let title_bar_height = 32.0;
-        let (mantle, text_color) = if self.dark_mode {
+        let (base_color, text_color) = if self.dark_mode {
             (
-                egui::Color32::from_rgb(24, 24, 37),    // Mocha mantle
+                egui::Color32::from_rgb(30, 30, 46),    // Mocha base
                 egui::Color32::from_rgb(205, 214, 244), // Mocha text
             )
         } else {
             (
-                egui::Color32::from_rgb(230, 233, 239), // Latte mantle
+                egui::Color32::from_rgb(239, 241, 245), // Latte base
                 egui::Color32::from_rgb(76, 79, 105),   // Latte text
             )
         };
 
+        // Get weather info
+        let weather_text = if let Ok(weather) = self.weather.lock() {
+            if let Some(ref info) = *weather {
+                format!("{} {:.0}°F {}", info.icon, info.temperature_f, info.description)
+            } else {
+                "Loading...".to_string()
+            }
+        } else {
+            "".to_string()
+        };
+
         egui::TopBottomPanel::top("title_bar")
             .exact_height(title_bar_height)
-            .frame(egui::Frame::none().fill(mantle))
+            .frame(egui::Frame::none().fill(base_color))
             .show(ctx, |ui| {
-                let time_text = self.window_title();
-                ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
-                    ui.add_space(8.0);
+                ui.horizontal_centered(|ui| {
+                    // Left side - space for traffic lights
+                    ui.add_space(80.0);
+
+                    // Center - date and time
+                    let time_text = self.window_title();
+                    let available_width = ui.available_width();
+                    ui.add_space((available_width - 300.0) / 2.0);
                     ui.label(egui::RichText::new(time_text).color(text_color).size(14.0));
+
+                    // Right side - weather
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.add_space(15.0);
+                        ui.label(egui::RichText::new(&weather_text).color(text_color).size(14.0));
+                    });
                 });
             });
 
         // Menu bar
         egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
             egui::menu::bar(ui, |ui| {
-                ui.menu_button("File", |ui| {
+                ui.menu_button("\u{1F4C4} File", |ui| {  // 📄 document icon
                     if ui
                         .add(egui::Button::new("New").shortcut_text("Ctrl+N"))
                         .clicked()
@@ -502,7 +626,7 @@ impl eframe::App for NotepadApp {
                     }
                 });
 
-                ui.menu_button("Settings", |ui| {
+                ui.menu_button("\u{2699} Settings", |ui| {  // ⚙ gear icon
                     ui.label("Editor Font Size");
                     ui.horizontal(|ui| {
                         if ui.button("-").clicked() {
@@ -539,7 +663,9 @@ impl eframe::App for NotepadApp {
         });
 
         // Status bar
-        egui::TopBottomPanel::bottom("status_bar").show(ctx, |ui| {
+        egui::TopBottomPanel::bottom("status_bar")
+            .frame(egui::Frame::none().fill(base_color).inner_margin(egui::Margin::symmetric(8.0, 4.0)))
+            .show(ctx, |ui| {
             ui.horizontal(|ui| {
                 // Theme toggle on the left (sun for light, moon for dark)
                 // Show moon in dark mode (click to go light), sun in light mode (click to go dark)
