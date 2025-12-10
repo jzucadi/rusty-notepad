@@ -168,8 +168,8 @@ impl NotepadApp {
         let base = egui::Color32::from_rgb(239, 241, 245);
         let mantle = egui::Color32::from_rgb(230, 233, 239);
         let crust = egui::Color32::from_rgb(220, 224, 232);
-        let text = egui::Color32::from_rgb(76, 79, 105);
-        let subtext0 = egui::Color32::from_rgb(108, 111, 133);
+        let _text = egui::Color32::from_rgb(76, 79, 105);
+        let _subtext0 = egui::Color32::from_rgb(108, 111, 133);
         let surface0 = egui::Color32::from_rgb(204, 208, 218);
         let surface1 = egui::Color32::from_rgb(188, 192, 204);
         let surface2 = egui::Color32::from_rgb(172, 176, 190);
@@ -184,28 +184,29 @@ impl NotepadApp {
         style.visuals.faint_bg_color = mantle;
         style.visuals.extreme_bg_color = crust;
 
-        // Text
-        style.visuals.override_text_color = Some(text);
+        // Text - use #4c4f69 for UI text in light mode
+        let ui_text = egui::Color32::from_rgb(76, 79, 105); // #4c4f69
+        style.visuals.override_text_color = Some(ui_text);
 
-        // Widgets - use base for borders/strokes
+        // Widgets - use base for borders/strokes, ui_text for text
         style.visuals.widgets.noninteractive.bg_fill = surface0;
-        style.visuals.widgets.noninteractive.fg_stroke = egui::Stroke::new(1.0, subtext0);
+        style.visuals.widgets.noninteractive.fg_stroke = egui::Stroke::new(1.0, ui_text);
         style.visuals.widgets.noninteractive.bg_stroke = egui::Stroke::new(1.0, base);
 
         style.visuals.widgets.inactive.bg_fill = surface0;
-        style.visuals.widgets.inactive.fg_stroke = egui::Stroke::new(1.0, text);
+        style.visuals.widgets.inactive.fg_stroke = egui::Stroke::new(1.0, ui_text);
         style.visuals.widgets.inactive.bg_stroke = egui::Stroke::new(1.0, base);
 
         style.visuals.widgets.hovered.bg_fill = surface1;
-        style.visuals.widgets.hovered.fg_stroke = egui::Stroke::new(1.5, text);
+        style.visuals.widgets.hovered.fg_stroke = egui::Stroke::new(1.5, ui_text);
         style.visuals.widgets.hovered.bg_stroke = egui::Stroke::new(1.0, base);
 
         style.visuals.widgets.active.bg_fill = surface2;
-        style.visuals.widgets.active.fg_stroke = egui::Stroke::new(2.0, text);
+        style.visuals.widgets.active.fg_stroke = egui::Stroke::new(2.0, ui_text);
         style.visuals.widgets.active.bg_stroke = egui::Stroke::new(1.0, base);
 
         style.visuals.widgets.open.bg_fill = surface1;
-        style.visuals.widgets.open.fg_stroke = egui::Stroke::new(1.0, text);
+        style.visuals.widgets.open.fg_stroke = egui::Stroke::new(1.0, ui_text);
         style.visuals.widgets.open.bg_stroke = egui::Stroke::new(1.0, base);
 
         // Selection
@@ -252,13 +253,14 @@ impl NotepadApp {
         let base = egui::Color32::from_rgb(30, 30, 46);
         let mantle = egui::Color32::from_rgb(24, 24, 37);
         let crust = egui::Color32::from_rgb(17, 17, 27);
-        let text = egui::Color32::from_rgb(205, 214, 244);
-        let subtext0 = egui::Color32::from_rgb(166, 173, 200);
+        let _text = egui::Color32::from_rgb(205, 214, 244);
+        let _subtext0 = egui::Color32::from_rgb(166, 173, 200);
         let surface0 = egui::Color32::from_rgb(49, 50, 68);
         let surface1 = egui::Color32::from_rgb(69, 71, 90);
         let surface2 = egui::Color32::from_rgb(88, 91, 112);
         let blue = egui::Color32::from_rgb(137, 180, 250);
         let sapphire = egui::Color32::from_rgb(116, 199, 236);
+        let ui_text = egui::Color32::from_rgb(138, 173, 244); // #8aadf4
 
         let mut style = (*ctx.style()).clone();
 
@@ -268,28 +270,28 @@ impl NotepadApp {
         style.visuals.faint_bg_color = mantle;
         style.visuals.extreme_bg_color = crust;
 
-        // Text
-        style.visuals.override_text_color = Some(text);
+        // Text - use #8aadf4 for UI text in dark mode
+        style.visuals.override_text_color = Some(ui_text);
 
-        // Widgets - use base for borders/strokes
+        // Widgets - use base for borders/strokes, ui_text for text
         style.visuals.widgets.noninteractive.bg_fill = surface0;
-        style.visuals.widgets.noninteractive.fg_stroke = egui::Stroke::new(1.0, subtext0);
+        style.visuals.widgets.noninteractive.fg_stroke = egui::Stroke::new(1.0, ui_text);
         style.visuals.widgets.noninteractive.bg_stroke = egui::Stroke::new(1.0, base);
 
         style.visuals.widgets.inactive.bg_fill = surface0;
-        style.visuals.widgets.inactive.fg_stroke = egui::Stroke::new(1.0, text);
+        style.visuals.widgets.inactive.fg_stroke = egui::Stroke::new(1.0, ui_text);
         style.visuals.widgets.inactive.bg_stroke = egui::Stroke::new(1.0, base);
 
         style.visuals.widgets.hovered.bg_fill = surface1;
-        style.visuals.widgets.hovered.fg_stroke = egui::Stroke::new(1.5, text);
+        style.visuals.widgets.hovered.fg_stroke = egui::Stroke::new(1.5, ui_text);
         style.visuals.widgets.hovered.bg_stroke = egui::Stroke::new(1.0, base);
 
         style.visuals.widgets.active.bg_fill = surface2;
-        style.visuals.widgets.active.fg_stroke = egui::Stroke::new(2.0, text);
+        style.visuals.widgets.active.fg_stroke = egui::Stroke::new(2.0, ui_text);
         style.visuals.widgets.active.bg_stroke = egui::Stroke::new(1.0, base);
 
         style.visuals.widgets.open.bg_fill = surface1;
-        style.visuals.widgets.open.fg_stroke = egui::Stroke::new(1.0, text);
+        style.visuals.widgets.open.fg_stroke = egui::Stroke::new(1.0, ui_text);
         style.visuals.widgets.open.bg_stroke = egui::Stroke::new(1.0, base);
 
         // Selection
@@ -534,12 +536,12 @@ impl eframe::App for NotepadApp {
         let (base_color, text_color) = if self.dark_mode {
             (
                 egui::Color32::from_rgb(30, 30, 46),    // Mocha base
-                egui::Color32::from_rgb(205, 214, 244), // Mocha text
+                egui::Color32::from_rgb(138, 173, 244), // #8aadf4
             )
         } else {
             (
                 egui::Color32::from_rgb(239, 241, 245), // Latte base
-                egui::Color32::from_rgb(76, 79, 105),   // Latte text
+                egui::Color32::from_rgb(76, 79, 105),   // #4c4f69
             )
         };
 
