@@ -173,9 +173,7 @@ impl NotepadApp {
         let surface0 = egui::Color32::from_rgb(204, 208, 218);
         let surface1 = egui::Color32::from_rgb(188, 192, 204);
         let surface2 = egui::Color32::from_rgb(172, 176, 190);
-        let overlay0 = egui::Color32::from_rgb(156, 160, 176);
         let blue = egui::Color32::from_rgb(30, 102, 245);
-        let lavender = egui::Color32::from_rgb(114, 135, 253);
         let sapphire = egui::Color32::from_rgb(32, 159, 181);
 
         let mut style = (*ctx.style()).clone();
@@ -259,9 +257,7 @@ impl NotepadApp {
         let surface0 = egui::Color32::from_rgb(49, 50, 68);
         let surface1 = egui::Color32::from_rgb(69, 71, 90);
         let surface2 = egui::Color32::from_rgb(88, 91, 112);
-        let overlay0 = egui::Color32::from_rgb(108, 112, 134);
         let blue = egui::Color32::from_rgb(137, 180, 250);
-        let lavender = egui::Color32::from_rgb(180, 190, 254);
         let sapphire = egui::Color32::from_rgb(116, 199, 236);
 
         let mut style = (*ctx.style()).clone();
