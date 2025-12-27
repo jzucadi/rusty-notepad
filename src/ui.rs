@@ -3,9 +3,9 @@ use eframe::egui;
 use crate::app::NotepadApp;
 use crate::constants::{
     ELEMENT_SPACING, FONT_SIZE_EXTRA_LARGE, FONT_SIZE_LARGE, FONT_SIZE_MEDIUM, FONT_SIZE_SMALL,
-    FONT_SIZE_STEP, MAX_FONT_SIZE, MIN_FONT_SIZE, STATUS_BAR_MARGIN_H, STATUS_BAR_MARGIN_V,
-    THEME_ICON_SIZE, TITLE_BAR_FONT_SIZE, TITLE_BAR_HEIGHT, TITLE_CENTER_WIDTH,
-    TRAFFIC_LIGHTS_SPACE, WEATHER_SPACING,
+    FONT_SIZE_STEP, MAX_FONT_SIZE, MIN_FONT_SIZE, STATUS_BAR_FONT_SIZE, STATUS_BAR_MARGIN_H,
+    STATUS_BAR_MARGIN_V, THEME_ICON_SIZE, TITLE_BAR_FONT_SIZE, TITLE_BAR_HEIGHT,
+    TITLE_CENTER_WIDTH, TRAFFIC_LIGHTS_SPACE, WEATHER_SPACING,
 };
 use crate::theme;
 
@@ -152,18 +152,18 @@ impl NotepadApp {
                     }
 
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        let gpu_text = match self.gpu_usage {
-                            Some(usage) => format!("{:.1}%", usage),
-                            None => "N/A".to_string(),
-                        };
-                        let temp_text = match self.cpu_temp {
-                            Some(temp) => format!("{:.0}°C", temp),
-                            None => "N/A".to_string(),
-                        };
+                        let stats = &self.system_stats;
+                        let gpu_text = stats.gpu_usage
+                            .map(|u| format!("{:.1}%", u))
+                            .unwrap_or_else(|| "N/A".to_string());
+                        let temp_text = stats.cpu_temp
+                            .map(|t| format!("{:.0}°C", t))
+                            .unwrap_or_else(|| "N/A".to_string());
+
                         ui.label(egui::RichText::new(format!(
                             "CPU: {:.1}% | GPU: {} | RAM: {:.1}% | Temp: {}",
-                            self.cpu_usage, gpu_text, self.ram_usage, temp_text
-                        )).size(12.5));
+                            stats.cpu_usage, gpu_text, stats.ram_usage, temp_text
+                        )).size(STATUS_BAR_FONT_SIZE));
                     });
                 });
             });

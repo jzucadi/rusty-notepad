@@ -8,8 +8,7 @@ use std::time::{Duration, Instant};
 use sysinfo::System;
 
 use crate::constants::{DEFAULT_EDITOR_FONT_SIZE, SYSTEM_INFO_REFRESH_MS, WEATHER_REFRESH_SECS};
-use crate::gpu;
-use crate::temperature;
+use crate::system_monitor::{self, SystemStats};
 use crate::theme;
 use crate::weather::{self, WeatherInfo};
 
@@ -21,21 +20,25 @@ pub enum PendingAction {
 }
 
 pub struct NotepadApp {
+    // Document state
     pub text: String,
     pub file_path: Option<PathBuf>,
     pub dirty: bool,
+
+    // UI state
     pub show_unsaved_dialog: bool,
     pub pending_action: Option<PendingAction>,
     pub status_message: Option<String>,
     pub font_size: f32,
     pub dark_mode: bool,
+
+    // External data
     pub weather: Arc<Mutex<Option<WeatherInfo>>>,
     pub last_weather_fetch: Option<Instant>,
+
+    // System monitoring
     pub system: System,
-    pub cpu_usage: f32,
-    pub gpu_usage: Option<f32>,
-    pub cpu_temp: Option<f32>,
-    pub ram_usage: f32,
+    pub system_stats: SystemStats,
     pub last_system_refresh: Instant,
 }
 
@@ -70,10 +73,7 @@ impl NotepadApp {
             weather,
             last_weather_fetch: Some(Instant::now()),
             system,
-            cpu_usage: 0.0,
-            gpu_usage: None,
-            cpu_temp: None,
-            ram_usage: 0.0,
+            system_stats: SystemStats::default(),
             last_system_refresh: Instant::now(),
         }
     }
@@ -98,16 +98,7 @@ impl NotepadApp {
 
     pub fn refresh_system_info(&mut self) {
         if self.last_system_refresh.elapsed() > Duration::from_millis(SYSTEM_INFO_REFRESH_MS) {
-            self.system.refresh_cpu_all();
-            self.system.refresh_memory();
-            self.cpu_usage = self.system.global_cpu_usage();
-            self.gpu_usage = gpu::get_gpu_usage();
-            self.cpu_temp = temperature::get_cpu_temperature();
-
-            let total_mem = self.system.total_memory() as f32;
-            let used_mem = self.system.used_memory() as f32;
-            self.ram_usage = if total_mem > 0.0 { (used_mem / total_mem) * 100.0 } else { 0.0 };
-
+            self.system_stats = system_monitor::collect_stats(&mut self.system);
             self.last_system_refresh = Instant::now();
         }
     }

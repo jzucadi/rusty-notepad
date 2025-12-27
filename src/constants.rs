@@ -17,6 +17,7 @@ pub const WEATHER_SPACING: f32 = 15.0;
 pub const DEFAULT_EDITOR_FONT_SIZE: f32 = 14.0;
 pub const UI_FONT_SIZE: f32 = 16.0;
 pub const TITLE_BAR_FONT_SIZE: f32 = 14.0;
+pub const STATUS_BAR_FONT_SIZE: f32 = 12.5;
 pub const THEME_ICON_SIZE: f32 = 18.0;
 pub const HEADING_SCALE: f32 = 1.2;
 pub const SMALL_TEXT_SCALE: f32 = 0.85;
