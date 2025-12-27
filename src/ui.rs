@@ -156,7 +156,14 @@ impl NotepadApp {
                             Some(usage) => format!("{:.1}%", usage),
                             None => "N/A".to_string(),
                         };
-                        ui.label(egui::RichText::new(format!("CPU: {:.1}% | GPU: {}", self.cpu_usage, gpu_text)).size(12.5));
+                        let temp_text = match self.cpu_temp {
+                            Some(temp) => format!("{:.0}°C", temp),
+                            None => "N/A".to_string(),
+                        };
+                        ui.label(egui::RichText::new(format!(
+                            "CPU: {:.1}% | GPU: {} | RAM: {:.1}% | Temp: {}",
+                            self.cpu_usage, gpu_text, self.ram_usage, temp_text
+                        )).size(12.5));
                     });
                 });
             });

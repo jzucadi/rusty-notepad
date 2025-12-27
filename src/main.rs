@@ -1,6 +1,7 @@
 mod app;
 mod constants;
 mod gpu;
+mod temperature;
 mod theme;
 mod ui;
 mod weather;
