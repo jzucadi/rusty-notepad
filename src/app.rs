@@ -5,8 +5,10 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
+use sysinfo::System;
 
-use crate::constants::{DEFAULT_EDITOR_FONT_SIZE, WEATHER_REFRESH_SECS};
+use crate::constants::{DEFAULT_EDITOR_FONT_SIZE, SYSTEM_INFO_REFRESH_MS, WEATHER_REFRESH_SECS};
+use crate::gpu;
 use crate::theme;
 use crate::weather::{self, WeatherInfo};
 
@@ -17,7 +19,6 @@ pub enum PendingAction {
     Exit,
 }
 
-#[derive(Debug)]
 pub struct NotepadApp {
     pub text: String,
     pub file_path: Option<PathBuf>,
@@ -29,6 +30,10 @@ pub struct NotepadApp {
     pub dark_mode: bool,
     pub weather: Arc<Mutex<Option<WeatherInfo>>>,
     pub last_weather_fetch: Option<Instant>,
+    pub system: System,
+    pub cpu_usage: f32,
+    pub gpu_usage: Option<f32>,
+    pub last_system_refresh: Instant,
 }
 
 impl NotepadApp {
@@ -47,6 +52,9 @@ impl NotepadApp {
             }
         });
 
+        let mut system = System::new_all();
+        system.refresh_cpu_all();
+
         Self {
             text: String::new(),
             file_path: None,
@@ -58,6 +66,10 @@ impl NotepadApp {
             dark_mode: true,
             weather,
             last_weather_fetch: Some(Instant::now()),
+            system,
+            cpu_usage: 0.0,
+            gpu_usage: None,
+            last_system_refresh: Instant::now(),
         }
     }
 
@@ -76,6 +88,15 @@ impl NotepadApp {
                     }
                 }
             });
+        }
+    }
+
+    pub fn refresh_system_info(&mut self) {
+        if self.last_system_refresh.elapsed() > Duration::from_millis(SYSTEM_INFO_REFRESH_MS) {
+            self.system.refresh_cpu_all();
+            self.cpu_usage = self.system.global_cpu_usage();
+            self.gpu_usage = gpu::get_gpu_usage();
+            self.last_system_refresh = Instant::now();
         }
     }
 

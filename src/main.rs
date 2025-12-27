@@ -1,5 +1,6 @@
 mod app;
 mod constants;
+mod gpu;
 mod theme;
 mod ui;
 mod weather;
@@ -33,6 +34,7 @@ impl eframe::App for NotepadApp {
         ctx.request_repaint_after(Duration::from_secs(REPAINT_INTERVAL_SECS));
 
         self.refresh_weather_if_needed();
+        self.refresh_system_info();
         self.handle_close_request(ctx);
         self.handle_keyboard_shortcuts(ctx);
         self.handle_unsaved_dialog(ctx);

@@ -152,9 +152,11 @@ impl NotepadApp {
                     }
 
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        let lines = self.text.lines().count().max(1);
-                        let chars = self.text.len();
-                        ui.label(format!("Lines: {} | Chars: {}", lines, chars));
+                        let gpu_text = match self.gpu_usage {
+                            Some(usage) => format!("{:.1}%", usage),
+                            None => "N/A".to_string(),
+                        };
+                        ui.label(egui::RichText::new(format!("CPU: {:.1}% | GPU: {}", self.cpu_usage, gpu_text)).size(12.5));
                     });
                 });
             });

@@ -36,3 +36,4 @@ pub const FONT_SIZE_EXTRA_LARGE: f32 = 24.0;
 pub const REPAINT_INTERVAL_SECS: u64 = 1;
 pub const HTTP_TIMEOUT_SECS: u64 = 10;
 pub const WEATHER_REFRESH_SECS: u64 = 600;
+pub const SYSTEM_INFO_REFRESH_MS: u64 = 1000;
