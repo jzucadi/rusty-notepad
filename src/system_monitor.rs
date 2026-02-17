@@ -1,6 +1,3 @@
-/// System monitoring module for CPU, GPU, RAM, and temperature.
-/// Consolidates all system resource monitoring with platform-specific implementations.
-
 /// Holds all system statistics in one place
 #[derive(Debug, Clone, Default)]
 pub struct SystemStats {
@@ -62,7 +59,7 @@ mod macos {
 
     pub fn get_gpu_usage() -> Option<f32> {
         unsafe {
-            let matching = IOServiceMatching(b"IOAccelerator\0".as_ptr() as *const c_char);
+            let matching = IOServiceMatching(c"IOAccelerator".as_ptr());
             if matching.is_null() {
                 return None;
             }
@@ -141,6 +138,7 @@ mod macos {
 
     // ============== Temperature Monitoring (SMC) ==============
 
+    #[derive(Default)]
     #[repr(C)]
     struct SMCKeyData {
         key: u32,
@@ -162,21 +160,6 @@ mod macos {
         data_attributes: u8,
     }
 
-    impl Default for SMCKeyData {
-        fn default() -> Self {
-            Self {
-                key: 0,
-                vers: [0; 6],
-                p_limit_data: [0; 16],
-                key_info: SMCKeyInfoData::default(),
-                result: 0,
-                status: 0,
-                data8: 0,
-                data32: 0,
-                bytes: [0; 32],
-            }
-        }
-    }
 
     const KERNEL_INDEX_SMC: u32 = 2;
     const SMC_CMD_READ_KEYINFO: u8 = 9;
@@ -188,7 +171,7 @@ mod macos {
 
     pub fn get_cpu_temperature() -> Option<f32> {
         unsafe {
-            let matching = IOServiceMatching(b"AppleSMC\0".as_ptr() as *const c_char);
+            let matching = IOServiceMatching(c"AppleSMC".as_ptr());
             if matching.is_null() {
                 return None;
             }
