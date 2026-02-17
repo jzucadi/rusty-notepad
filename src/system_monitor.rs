@@ -160,7 +160,6 @@ mod macos {
         data_attributes: u8,
     }
 
-
     const KERNEL_INDEX_SMC: u32 = 2;
     const SMC_CMD_READ_KEYINFO: u8 = 9;
     const SMC_CMD_READ_BYTES: u8 = 5;
