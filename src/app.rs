@@ -79,7 +79,8 @@ impl NotepadApp {
     }
 
     pub fn refresh_weather_if_needed(&mut self) {
-        let should_refresh = self.last_weather_fetch
+        let should_refresh = self
+            .last_weather_fetch
             .map(|t| t.elapsed() > Duration::from_secs(WEATHER_REFRESH_SECS))
             .unwrap_or(true);
 
@@ -112,7 +113,9 @@ impl NotepadApp {
     }
 
     pub fn window_title(&self) -> String {
-        Local::now().format("%A, %B %d, %Y  %I:%M:%S %p").to_string()
+        Local::now()
+            .format("%A, %B %d, %Y  %I:%M:%S %p")
+            .to_string()
     }
 
     pub fn new_file(&mut self) {

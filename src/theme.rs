@@ -119,7 +119,10 @@ pub fn apply_palette(ctx: &egui::Context, palette: &CatppuccinPalette) {
     );
     style.text_styles.insert(
         egui::TextStyle::Small,
-        egui::FontId::new(UI_FONT_SIZE * SMALL_TEXT_SCALE, egui::FontFamily::Proportional),
+        egui::FontId::new(
+            UI_FONT_SIZE * SMALL_TEXT_SCALE,
+            egui::FontFamily::Proportional,
+        ),
     );
     style.text_styles.insert(
         egui::TextStyle::Monospace,

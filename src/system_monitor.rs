@@ -101,8 +101,7 @@ mod macos {
 
     unsafe fn get_gpu_entry_usage(entry: u32) -> Option<f32> {
         let mut properties: *mut std::ffi::c_void = std::ptr::null_mut();
-        let result =
-            IORegistryEntryCreateCFProperties(entry, &mut properties, std::ptr::null(), 0);
+        let result = IORegistryEntryCreateCFProperties(entry, &mut properties, std::ptr::null(), 0);
 
         if result != KERN_SUCCESS || properties.is_null() {
             return None;
@@ -217,7 +216,7 @@ mod macos {
         // Apple Silicon and Intel temperature sensor keys
         const TEMP_KEYS: &[&[u8; 4]] = &[
             b"Tp09", b"Tp01", b"Tp05", b"Tp0D", b"Tp0H", // Apple Silicon
-            b"Tp0L", b"Tp0P", b"Tp0X", b"Tp0b",          // Apple Silicon
+            b"Tp0L", b"Tp0P", b"Tp0X", b"Tp0b", // Apple Silicon
             b"TC0P", b"TC0C", b"TC1C", b"TC0D", b"TCXC", // Intel
         ];
 

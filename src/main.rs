@@ -9,7 +9,9 @@ use eframe::egui;
 use std::time::Duration;
 
 use app::NotepadApp;
-use constants::{MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, REPAINT_INTERVAL_SECS, WINDOW_HEIGHT, WINDOW_WIDTH};
+use constants::{
+    MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, REPAINT_INTERVAL_SECS, WINDOW_HEIGHT, WINDOW_WIDTH,
+};
 
 fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
