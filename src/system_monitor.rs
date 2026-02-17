@@ -1,6 +1,3 @@
-/// System monitoring module for CPU, GPU, RAM, and temperature.
-/// Consolidates all system resource monitoring with platform-specific implementations.
-
 /// Holds all system statistics in one place
 #[derive(Debug, Clone, Default)]
 pub struct SystemStats {
@@ -62,7 +59,7 @@ mod macos {
 
     pub fn get_gpu_usage() -> Option<f32> {
         unsafe {
-            let matching = IOServiceMatching(b"IOAccelerator\0".as_ptr() as *const c_char);
+            let matching = IOServiceMatching(c"IOAccelerator".as_ptr());
             if matching.is_null() {
                 return None;
             }
@@ -101,8 +98,7 @@ mod macos {
 
     unsafe fn get_gpu_entry_usage(entry: u32) -> Option<f32> {
         let mut properties: *mut std::ffi::c_void = std::ptr::null_mut();
-        let result =
-            IORegistryEntryCreateCFProperties(entry, &mut properties, std::ptr::null(), 0);
+        let result = IORegistryEntryCreateCFProperties(entry, &mut properties, std::ptr::null(), 0);
 
         if result != KERN_SUCCESS || properties.is_null() {
             return None;
@@ -142,6 +138,7 @@ mod macos {
 
     // ============== Temperature Monitoring (SMC) ==============
 
+    #[derive(Default)]
     #[repr(C)]
     struct SMCKeyData {
         key: u32,
@@ -163,22 +160,6 @@ mod macos {
         data_attributes: u8,
     }
 
-    impl Default for SMCKeyData {
-        fn default() -> Self {
-            Self {
-                key: 0,
-                vers: [0; 6],
-                p_limit_data: [0; 16],
-                key_info: SMCKeyInfoData::default(),
-                result: 0,
-                status: 0,
-                data8: 0,
-                data32: 0,
-                bytes: [0; 32],
-            }
-        }
-    }
-
     const KERNEL_INDEX_SMC: u32 = 2;
     const SMC_CMD_READ_KEYINFO: u8 = 9;
     const SMC_CMD_READ_BYTES: u8 = 5;
@@ -189,7 +170,7 @@ mod macos {
 
     pub fn get_cpu_temperature() -> Option<f32> {
         unsafe {
-            let matching = IOServiceMatching(b"AppleSMC\0".as_ptr() as *const c_char);
+            let matching = IOServiceMatching(c"AppleSMC".as_ptr());
             if matching.is_null() {
                 return None;
             }
@@ -217,7 +198,7 @@ mod macos {
         // Apple Silicon and Intel temperature sensor keys
         const TEMP_KEYS: &[&[u8; 4]] = &[
             b"Tp09", b"Tp01", b"Tp05", b"Tp0D", b"Tp0H", // Apple Silicon
-            b"Tp0L", b"Tp0P", b"Tp0X", b"Tp0b",          // Apple Silicon
+            b"Tp0L", b"Tp0P", b"Tp0X", b"Tp0b", // Apple Silicon
             b"TC0P", b"TC0C", b"TC1C", b"TC0D", b"TCXC", // Intel
         ];
 

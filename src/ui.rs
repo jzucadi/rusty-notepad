@@ -15,7 +15,10 @@ impl NotepadApp {
 
         let weather_text = if let Ok(weather) = self.weather.lock() {
             if let Some(ref info) = *weather {
-                format!("{} {:.0}°F {}", info.icon, info.temperature_f, info.description)
+                format!(
+                    "{} {:.0}°F {}",
+                    info.icon, info.temperature_f, info.description
+                )
             } else {
                 "Loading...".to_string()
             }
@@ -33,11 +36,19 @@ impl NotepadApp {
                     let time_text = self.window_title();
                     let available_width = ui.available_width();
                     ui.add_space((available_width - TITLE_CENTER_WIDTH) / 2.0);
-                    ui.label(egui::RichText::new(time_text).color(text_color).size(TITLE_BAR_FONT_SIZE));
+                    ui.label(
+                        egui::RichText::new(time_text)
+                            .color(text_color)
+                            .size(TITLE_BAR_FONT_SIZE),
+                    );
 
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         ui.add_space(WEATHER_SPACING);
-                        ui.label(egui::RichText::new(&weather_text).color(text_color).size(TITLE_BAR_FONT_SIZE));
+                        ui.label(
+                            egui::RichText::new(&weather_text)
+                                .color(text_color)
+                                .size(TITLE_BAR_FONT_SIZE),
+                        );
                     });
                 });
             });
@@ -130,7 +141,14 @@ impl NotepadApp {
         let (base_color, _) = theme::get_theme_colors(self.dark_mode);
 
         egui::TopBottomPanel::bottom("status_bar")
-            .frame(egui::Frame::none().fill(base_color).inner_margin(egui::Margin::symmetric(STATUS_BAR_MARGIN_H, STATUS_BAR_MARGIN_V)))
+            .frame(
+                egui::Frame::none()
+                    .fill(base_color)
+                    .inner_margin(egui::Margin::symmetric(
+                        STATUS_BAR_MARGIN_H,
+                        STATUS_BAR_MARGIN_V,
+                    )),
+            )
             .show(ctx, |ui| {
                 ui.horizontal(|ui| {
                     let (theme_icon, icon_color) = if self.dark_mode {
@@ -139,8 +157,12 @@ impl NotepadApp {
                         ("\u{2600}", egui::Color32::from_rgb(223, 142, 29))
                     };
 
-                    let button = egui::Button::new(egui::RichText::new(theme_icon).color(icon_color).size(THEME_ICON_SIZE))
-                        .frame(false);
+                    let button = egui::Button::new(
+                        egui::RichText::new(theme_icon)
+                            .color(icon_color)
+                            .size(THEME_ICON_SIZE),
+                    )
+                    .frame(false);
                     if ui.add(button).clicked() {
                         self.dark_mode = !self.dark_mode;
                         self.apply_theme(ctx);
@@ -153,17 +175,22 @@ impl NotepadApp {
 
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         let stats = &self.system_stats;
-                        let gpu_text = stats.gpu_usage
+                        let gpu_text = stats
+                            .gpu_usage
                             .map(|u| format!("{:.1}%", u))
                             .unwrap_or_else(|| "N/A".to_string());
-                        let temp_text = stats.cpu_temp
+                        let temp_text = stats
+                            .cpu_temp
                             .map(|t| format!("{:.0}°C", t))
                             .unwrap_or_else(|| "N/A".to_string());
 
-                        ui.label(egui::RichText::new(format!(
-                            "CPU: {:.1}% | GPU: {} | RAM: {:.1}% | Temp: {}",
-                            stats.cpu_usage, gpu_text, stats.ram_usage, temp_text
-                        )).size(STATUS_BAR_FONT_SIZE));
+                        ui.label(
+                            egui::RichText::new(format!(
+                                "CPU: {:.1}% | GPU: {} | RAM: {:.1}% | Temp: {}",
+                                stats.cpu_usage, gpu_text, stats.ram_usage, temp_text
+                            ))
+                            .size(STATUS_BAR_FONT_SIZE),
+                        );
                     });
                 });
             });
@@ -174,7 +201,8 @@ impl NotepadApp {
             egui::ScrollArea::vertical()
                 .auto_shrink([false, false])
                 .show(ui, |ui| {
-                    let editor_font = egui::FontId::new(self.font_size, egui::FontFamily::Monospace);
+                    let editor_font =
+                        egui::FontId::new(self.font_size, egui::FontFamily::Monospace);
                     let response = ui.add_sized(
                         ui.available_size(),
                         egui::TextEdit::multiline(&mut self.text)
