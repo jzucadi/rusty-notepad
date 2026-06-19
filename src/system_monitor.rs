@@ -9,13 +9,11 @@ pub struct SystemStats {
 
 #[cfg(target_os = "macos")]
 mod macos {
-    use super::SystemStats;
     use core_foundation::base::{CFType, TCFType};
     use core_foundation::dictionary::CFDictionary;
     use core_foundation::number::CFNumber;
     use core_foundation::string::CFString;
     use std::os::raw::c_char;
-    use sysinfo::System;
 
     // Shared IOKit FFI declarations
     #[link(name = "IOKit", kind = "framework")]
@@ -286,32 +284,26 @@ mod macos {
         }
     }
 
-    // ============== Combined Stats Collection ==============
-
-    pub fn collect_stats(system: &mut System) -> SystemStats {
-        system.refresh_cpu_all();
-        system.refresh_memory();
-
-        let total_mem = system.total_memory() as f32;
-        let used_mem = system.used_memory() as f32;
-
-        SystemStats {
-            cpu_usage: system.global_cpu_usage(),
-            gpu_usage: get_gpu_usage(),
-            ram_usage: if total_mem > 0.0 {
-                (used_mem / total_mem) * 100.0
-            } else {
-                0.0
-            },
-            cpu_temp: get_cpu_temperature(),
-        }
-    }
 }
 
 #[cfg(target_os = "macos")]
-pub use macos::collect_stats;
+fn gpu_usage() -> Option<f32> {
+    macos::get_gpu_usage()
+}
+#[cfg(target_os = "macos")]
+fn cpu_temp() -> Option<f32> {
+    macos::get_cpu_temperature()
+}
 
 #[cfg(not(target_os = "macos"))]
+fn gpu_usage() -> Option<f32> {
+    None
+}
+#[cfg(not(target_os = "macos"))]
+fn cpu_temp() -> Option<f32> {
+    None
+}
+
 pub fn collect_stats(system: &mut sysinfo::System) -> SystemStats {
     system.refresh_cpu_all();
     system.refresh_memory();
@@ -321,12 +313,12 @@ pub fn collect_stats(system: &mut sysinfo::System) -> SystemStats {
 
     SystemStats {
         cpu_usage: system.global_cpu_usage(),
-        gpu_usage: None,
+        gpu_usage: gpu_usage(),
         ram_usage: if total_mem > 0.0 {
             (used_mem / total_mem) * 100.0
         } else {
             0.0
         },
-        cpu_temp: None,
+        cpu_temp: cpu_temp(),
     }
 }
