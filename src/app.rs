@@ -11,7 +11,7 @@ use crate::system_monitor::{self, SystemStats};
 use crate::theme;
 use crate::weather::{self, WeatherInfo};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum PendingAction {
     New,
     Open,
@@ -33,7 +33,7 @@ pub struct NotepadApp {
 
     // External data
     pub weather: Arc<Mutex<Option<WeatherInfo>>>,
-    pub last_weather_fetch: Option<Instant>,
+    pub last_weather_fetch: Instant,
 
     // System monitoring
     pub system: System,
@@ -70,7 +70,7 @@ impl NotepadApp {
             font_size: 14.0,
             dark_mode: true,
             weather,
-            last_weather_fetch: Some(Instant::now()),
+            last_weather_fetch: Instant::now(),
             system,
             system_stats: SystemStats::default(),
             last_system_refresh: Instant::now(),
@@ -78,13 +78,8 @@ impl NotepadApp {
     }
 
     pub fn refresh_weather_if_needed(&mut self) {
-        let should_refresh = self
-            .last_weather_fetch
-            .map(|t| t.elapsed() > Duration::from_secs(600))
-            .unwrap_or(true);
-
-        if should_refresh {
-            self.last_weather_fetch = Some(Instant::now());
+        if self.last_weather_fetch.elapsed() > Duration::from_secs(600) {
+            self.last_weather_fetch = Instant::now();
             let weather_clone = Arc::clone(&self.weather);
             thread::spawn(move || {
                 if let Some(info) = weather::fetch_weather() {
