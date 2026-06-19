@@ -130,15 +130,10 @@ pub fn apply_palette(ctx: &egui::Context, palette: &CatppuccinPalette) {
 }
 
 pub fn get_theme_colors(dark_mode: bool) -> (egui::Color32, egui::Color32) {
-    if dark_mode {
-        (
-            egui::Color32::from_rgb(30, 30, 46),    // Mocha base
-            egui::Color32::from_rgb(138, 173, 244), // Mocha text
-        )
+    let p = if dark_mode {
+        CatppuccinPalette::mocha()
     } else {
-        (
-            egui::Color32::from_rgb(239, 241, 245), // Latte base
-            egui::Color32::from_rgb(76, 79, 105),   // Latte text
-        )
-    }
+        CatppuccinPalette::latte()
+    };
+    (p.base, p.text)
 }
