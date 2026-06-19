@@ -5,7 +5,6 @@
 A simple, lightweight text editor built with Rust and [egui](https://github.com/emilk/egui). Features the beautiful [Catppuccin Mocha](https://github.com/catppuccin/catppuccin) color scheme.
 
 ![Rust](https://img.shields.io/badge/Rust-000000?style=flat&logo=rust&logoColor=white)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 ## Features
 
