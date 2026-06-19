@@ -1,8 +1,6 @@
 use serde::Deserialize;
 use std::time::Duration;
 
-use crate::constants::HTTP_TIMEOUT_SECS;
-
 #[derive(Debug, Deserialize)]
 struct GeoResponse {
     lat: f64,
@@ -19,7 +17,7 @@ pub struct WeatherInfo {
 pub fn fetch_weather() -> Option<WeatherInfo> {
     let geo_url = "http://ip-api.com/json/";
     let client = reqwest::blocking::Client::builder()
-        .timeout(Duration::from_secs(HTTP_TIMEOUT_SECS))
+        .timeout(Duration::from_secs(10))
         .build()
         .ok()?;
 

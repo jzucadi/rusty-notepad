@@ -7,7 +7,6 @@ use std::thread;
 use std::time::{Duration, Instant};
 use sysinfo::System;
 
-use crate::constants::{DEFAULT_EDITOR_FONT_SIZE, SYSTEM_INFO_REFRESH_MS, WEATHER_REFRESH_SECS};
 use crate::system_monitor::{self, SystemStats};
 use crate::theme;
 use crate::weather::{self, WeatherInfo};
@@ -68,7 +67,7 @@ impl NotepadApp {
             show_unsaved_dialog: false,
             pending_action: None,
             status_message: None,
-            font_size: DEFAULT_EDITOR_FONT_SIZE,
+            font_size: 14.0,
             dark_mode: true,
             weather,
             last_weather_fetch: Some(Instant::now()),
@@ -81,7 +80,7 @@ impl NotepadApp {
     pub fn refresh_weather_if_needed(&mut self) {
         let should_refresh = self
             .last_weather_fetch
-            .map(|t| t.elapsed() > Duration::from_secs(WEATHER_REFRESH_SECS))
+            .map(|t| t.elapsed() > Duration::from_secs(600))
             .unwrap_or(true);
 
         if should_refresh {
@@ -98,7 +97,7 @@ impl NotepadApp {
     }
 
     pub fn refresh_system_info(&mut self) {
-        if self.last_system_refresh.elapsed() > Duration::from_millis(SYSTEM_INFO_REFRESH_MS) {
+        if self.last_system_refresh.elapsed() > Duration::from_millis(1000) {
             self.system_stats = system_monitor::collect_stats(&mut self.system);
             self.last_system_refresh = Instant::now();
         }

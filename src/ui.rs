@@ -1,13 +1,10 @@
 use eframe::egui;
 
 use crate::app::NotepadApp;
-use crate::constants::{
-    ELEMENT_SPACING, FONT_SIZE_EXTRA_LARGE, FONT_SIZE_LARGE, FONT_SIZE_MEDIUM, FONT_SIZE_SMALL,
-    FONT_SIZE_STEP, MAX_FONT_SIZE, MIN_FONT_SIZE, STATUS_BAR_FONT_SIZE, STATUS_BAR_MARGIN_H,
-    STATUS_BAR_MARGIN_V, THEME_ICON_SIZE, TITLE_BAR_FONT_SIZE, TITLE_BAR_HEIGHT,
-    TITLE_CENTER_WIDTH, TRAFFIC_LIGHTS_SPACE, WEATHER_SPACING,
-};
 use crate::theme;
+
+const ELEMENT_SPACING: f32 = 10.0;
+const TITLE_BAR_FONT_SIZE: f32 = 14.0;
 
 impl NotepadApp {
     pub fn render_title_bar(&self, ctx: &egui::Context) {
@@ -27,15 +24,15 @@ impl NotepadApp {
         };
 
         egui::TopBottomPanel::top("title_bar")
-            .exact_height(TITLE_BAR_HEIGHT)
+            .exact_height(32.0)
             .frame(egui::Frame::none().fill(base_color))
             .show(ctx, |ui| {
                 ui.horizontal_centered(|ui| {
-                    ui.add_space(TRAFFIC_LIGHTS_SPACE);
+                    ui.add_space(80.0); // leave room for macOS traffic lights
 
                     let time_text = self.window_title();
                     let available_width = ui.available_width();
-                    ui.add_space((available_width - TITLE_CENTER_WIDTH) / 2.0);
+                    ui.add_space((available_width - 300.0) / 2.0);
                     ui.label(
                         egui::RichText::new(time_text)
                             .color(text_color)
@@ -43,7 +40,7 @@ impl NotepadApp {
                     );
 
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        ui.add_space(WEATHER_SPACING);
+                        ui.add_space(15.0);
                         ui.label(
                             egui::RichText::new(&weather_text)
                                 .color(text_color)
@@ -104,11 +101,11 @@ impl NotepadApp {
                     ui.label("Editor Font Size");
                     ui.horizontal(|ui| {
                         if ui.button("-").clicked() {
-                            self.font_size = (self.font_size - FONT_SIZE_STEP).max(MIN_FONT_SIZE);
+                            self.font_size = (self.font_size - 1.0).max(8.0);
                         }
                         ui.label(format!("{:.0}", self.font_size));
                         if ui.button("+").clicked() {
-                            self.font_size = (self.font_size + FONT_SIZE_STEP).min(MAX_FONT_SIZE);
+                            self.font_size = (self.font_size + 1.0).min(48.0);
                         }
                     });
 
@@ -116,19 +113,19 @@ impl NotepadApp {
 
                     ui.menu_button("Presets", |ui| {
                         if ui.button("Small (12)").clicked() {
-                            self.font_size = FONT_SIZE_SMALL;
+                            self.font_size = 12.0;
                             ui.close_menu();
                         }
                         if ui.button("Medium (14)").clicked() {
-                            self.font_size = FONT_SIZE_MEDIUM;
+                            self.font_size = 14.0;
                             ui.close_menu();
                         }
                         if ui.button("Large (18)").clicked() {
-                            self.font_size = FONT_SIZE_LARGE;
+                            self.font_size = 18.0;
                             ui.close_menu();
                         }
                         if ui.button("Extra Large (24)").clicked() {
-                            self.font_size = FONT_SIZE_EXTRA_LARGE;
+                            self.font_size = 24.0;
                             ui.close_menu();
                         }
                     });
@@ -144,10 +141,7 @@ impl NotepadApp {
             .frame(
                 egui::Frame::none()
                     .fill(base_color)
-                    .inner_margin(egui::Margin::symmetric(
-                        STATUS_BAR_MARGIN_H,
-                        STATUS_BAR_MARGIN_V,
-                    )),
+                    .inner_margin(egui::Margin::symmetric(8.0, 4.0)),
             )
             .show(ctx, |ui| {
                 ui.horizontal(|ui| {
@@ -160,7 +154,7 @@ impl NotepadApp {
                     let button = egui::Button::new(
                         egui::RichText::new(theme_icon)
                             .color(icon_color)
-                            .size(THEME_ICON_SIZE),
+                            .size(18.0),
                     )
                     .frame(false);
                     if ui.add(button).clicked() {
@@ -189,7 +183,7 @@ impl NotepadApp {
                                 "CPU: {:.1}% | GPU: {} | RAM: {:.1}% | Temp: {}",
                                 stats.cpu_usage, gpu_text, stats.ram_usage, temp_text
                             ))
-                            .size(STATUS_BAR_FONT_SIZE),
+                            .size(12.5),
                         );
                     });
                 });

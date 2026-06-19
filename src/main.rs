@@ -1,5 +1,4 @@
 mod app;
-mod constants;
 mod system_monitor;
 mod theme;
 mod ui;
@@ -9,15 +8,12 @@ use eframe::egui;
 use std::time::Duration;
 
 use app::NotepadApp;
-use constants::{
-    MIN_WINDOW_HEIGHT, MIN_WINDOW_WIDTH, REPAINT_INTERVAL_SECS, WINDOW_HEIGHT, WINDOW_WIDTH,
-};
 
 fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([WINDOW_WIDTH, WINDOW_HEIGHT])
-            .with_min_inner_size([MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT])
+            .with_inner_size([800.0, 600.0])
+            .with_min_inner_size([400.0, 300.0])
             .with_fullsize_content_view(true)
             .with_titlebar_shown(false)
             .with_title_shown(false),
@@ -33,7 +29,7 @@ fn main() -> eframe::Result<()> {
 
 impl eframe::App for NotepadApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        ctx.request_repaint_after(Duration::from_secs(REPAINT_INTERVAL_SECS));
+        ctx.request_repaint_after(Duration::from_secs(1));
 
         self.refresh_weather_if_needed();
         self.refresh_system_info();

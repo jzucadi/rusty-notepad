@@ -1,6 +1,6 @@
 use eframe::egui;
 
-use crate::constants::{HEADING_SCALE, SMALL_TEXT_SCALE, UI_FONT_SIZE};
+const UI_FONT_SIZE: f32 = 16.0;
 
 pub struct CatppuccinPalette {
     pub base: egui::Color32,
@@ -115,14 +115,11 @@ pub fn apply_palette(ctx: &egui::Context, palette: &CatppuccinPalette) {
     );
     style.text_styles.insert(
         egui::TextStyle::Heading,
-        egui::FontId::new(UI_FONT_SIZE * HEADING_SCALE, egui::FontFamily::Proportional),
+        egui::FontId::new(UI_FONT_SIZE * 1.2, egui::FontFamily::Proportional),
     );
     style.text_styles.insert(
         egui::TextStyle::Small,
-        egui::FontId::new(
-            UI_FONT_SIZE * SMALL_TEXT_SCALE,
-            egui::FontFamily::Proportional,
-        ),
+        egui::FontId::new(UI_FONT_SIZE * 0.85, egui::FontFamily::Proportional),
     );
     style.text_styles.insert(
         egui::TextStyle::Monospace,
