@@ -1,6 +1,6 @@
 use eframe::egui;
 
-use crate::constants::{HEADING_SCALE, SMALL_TEXT_SCALE, UI_FONT_SIZE};
+const UI_FONT_SIZE: f32 = 16.0;
 
 pub struct CatppuccinPalette {
     pub base: egui::Color32,
@@ -115,14 +115,11 @@ pub fn apply_palette(ctx: &egui::Context, palette: &CatppuccinPalette) {
     );
     style.text_styles.insert(
         egui::TextStyle::Heading,
-        egui::FontId::new(UI_FONT_SIZE * HEADING_SCALE, egui::FontFamily::Proportional),
+        egui::FontId::new(UI_FONT_SIZE * 1.2, egui::FontFamily::Proportional),
     );
     style.text_styles.insert(
         egui::TextStyle::Small,
-        egui::FontId::new(
-            UI_FONT_SIZE * SMALL_TEXT_SCALE,
-            egui::FontFamily::Proportional,
-        ),
+        egui::FontId::new(UI_FONT_SIZE * 0.85, egui::FontFamily::Proportional),
     );
     style.text_styles.insert(
         egui::TextStyle::Monospace,
@@ -133,15 +130,10 @@ pub fn apply_palette(ctx: &egui::Context, palette: &CatppuccinPalette) {
 }
 
 pub fn get_theme_colors(dark_mode: bool) -> (egui::Color32, egui::Color32) {
-    if dark_mode {
-        (
-            egui::Color32::from_rgb(30, 30, 46),    // Mocha base
-            egui::Color32::from_rgb(138, 173, 244), // Mocha text
-        )
+    let p = if dark_mode {
+        CatppuccinPalette::mocha()
     } else {
-        (
-            egui::Color32::from_rgb(239, 241, 245), // Latte base
-            egui::Color32::from_rgb(76, 79, 105),   // Latte text
-        )
-    }
+        CatppuccinPalette::latte()
+    };
+    (p.base, p.text)
 }

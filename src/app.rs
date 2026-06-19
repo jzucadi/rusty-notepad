@@ -7,12 +7,11 @@ use std::thread;
 use std::time::{Duration, Instant};
 use sysinfo::System;
 
-use crate::constants::{DEFAULT_EDITOR_FONT_SIZE, SYSTEM_INFO_REFRESH_MS, WEATHER_REFRESH_SECS};
 use crate::system_monitor::{self, SystemStats};
 use crate::theme;
 use crate::weather::{self, WeatherInfo};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum PendingAction {
     New,
     Open,
@@ -34,7 +33,7 @@ pub struct NotepadApp {
 
     // External data
     pub weather: Arc<Mutex<Option<WeatherInfo>>>,
-    pub last_weather_fetch: Option<Instant>,
+    pub last_weather_fetch: Instant,
 
     // System monitoring
     pub system: System,
@@ -68,10 +67,10 @@ impl NotepadApp {
             show_unsaved_dialog: false,
             pending_action: None,
             status_message: None,
-            font_size: DEFAULT_EDITOR_FONT_SIZE,
+            font_size: 14.0,
             dark_mode: true,
             weather,
-            last_weather_fetch: Some(Instant::now()),
+            last_weather_fetch: Instant::now(),
             system,
             system_stats: SystemStats::default(),
             last_system_refresh: Instant::now(),
@@ -79,13 +78,8 @@ impl NotepadApp {
     }
 
     pub fn refresh_weather_if_needed(&mut self) {
-        let should_refresh = self
-            .last_weather_fetch
-            .map(|t| t.elapsed() > Duration::from_secs(WEATHER_REFRESH_SECS))
-            .unwrap_or(true);
-
-        if should_refresh {
-            self.last_weather_fetch = Some(Instant::now());
+        if self.last_weather_fetch.elapsed() > Duration::from_secs(600) {
+            self.last_weather_fetch = Instant::now();
             let weather_clone = Arc::clone(&self.weather);
             thread::spawn(move || {
                 if let Some(info) = weather::fetch_weather() {
@@ -98,7 +92,7 @@ impl NotepadApp {
     }
 
     pub fn refresh_system_info(&mut self) {
-        if self.last_system_refresh.elapsed() > Duration::from_millis(SYSTEM_INFO_REFRESH_MS) {
+        if self.last_system_refresh.elapsed() > Duration::from_millis(1000) {
             self.system_stats = system_monitor::collect_stats(&mut self.system);
             self.last_system_refresh = Instant::now();
         }
