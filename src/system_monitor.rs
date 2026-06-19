@@ -283,7 +283,6 @@ mod macos {
             }
         }
     }
-
 }
 
 #[cfg(target_os = "macos")]

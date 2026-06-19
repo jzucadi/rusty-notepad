@@ -152,9 +152,7 @@ impl NotepadApp {
                     };
 
                     let button = egui::Button::new(
-                        egui::RichText::new(theme_icon)
-                            .color(icon_color)
-                            .size(18.0),
+                        egui::RichText::new(theme_icon).color(icon_color).size(18.0),
                     )
                     .frame(false);
                     if ui.add(button).clicked() {
