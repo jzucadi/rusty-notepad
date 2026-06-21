@@ -1,4 +1,4 @@
-# Notepadr
+# Jot
 
 <img width="903" height="663" alt="Screenshot 2025-12-09 at 10 00 23 PM" src="https://github.com/user-attachments/assets/a073a56f-de26-47c3-9e34-d1d1a9b01a66" />
 
