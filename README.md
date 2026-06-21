@@ -1,10 +1,7 @@
-# Jot
+# Jot ![Rust](https://img.shields.io/badge/Rust-000000?style=flat&logo=rust&logoColor=white)
+The only note taker you will ever need. Made with Rust.
 
 <img width="903" height="663" alt="Screenshot 2025-12-09 at 10 00 23 PM" src="https://github.com/user-attachments/assets/a073a56f-de26-47c3-9e34-d1d1a9b01a66" />
-
-A simple, lightweight text editor built with Rust and [egui](https://github.com/emilk/egui). Features the beautiful [Catppuccin Mocha](https://github.com/catppuccin/catppuccin) color scheme.
-
-![Rust](https://img.shields.io/badge/Rust-000000?style=flat&logo=rust&logoColor=white)
 
 ## Features
 
