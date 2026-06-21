@@ -60,11 +60,3 @@ cargo build --release
 
 The compiled binary will be in `target/release/rusty-notepad` (or `rusty-notepad.exe` on Windows).
 
-## Dependencies
-
-- [eframe](https://crates.io/crates/eframe) - egui framework for native apps
-- [rfd](https://crates.io/crates/rfd) - Native file dialogs
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
